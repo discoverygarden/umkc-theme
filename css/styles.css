@@ -111,7 +111,7 @@ audio:not([controls]) {
 html {
   font-family: 'Open Sans', helvetica, arial, sans-serif;
   /* 1 */
-  font-size: 85%;
+  font-size: 85% !important;
   /* 3 */
   -ms-text-size-adjust: 100%;
   /* 2 */
