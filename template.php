@@ -7,132 +7,9 @@
  * @see https://drupal.org/node/1728096
  */
 
-
 /**
- * Override or insert variables into the maintenance page template.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("maintenance_page" in this case.)
+ * Simple Search Advanced Link //
  */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_maintenance_page(&$variables, $hook) {
-  // When a variable is manipulated or added in preprocess_html or
-  // preprocess_page, that same work is probably needed for the maintenance page
-  // as well, so we can just re-use those functions to do that work here.
-  umkc_theme_preprocess_html($variables, $hook);
-  umkc_theme_preprocess_page($variables, $hook);
-}
-// */
-
-/**
- * Override or insert variables into the html templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("html" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_html(&$variables, $hook) {
-  $variables['sample_variable'] = t('Lorem ipsum.');
-
-  // The body tag's classes are controlled by the $classes_array variable. To
-  // remove a class from $classes_array, use array_diff().
-  //$variables['classes_array'] = array_diff($variables['classes_array'], array('class-to-remove'));
-}
-// */
-
-/**
- * Override or insert variables into the page templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("page" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_page(&$variables, $hook) {
-  $variables['sample_variable'] = t('Lorem ipsum.');
-}
-// */
-
-/**
- * Override or insert variables into the node templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("node" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_node(&$variables, $hook) {
-  $variables['sample_variable'] = t('Lorem ipsum.');
-
-  // Optionally, run node-type-specific preprocess functions, like
-  // umkc_theme_preprocess_node_page() or umkc_theme_preprocess_node_story().
-  $function = __FUNCTION__ . '_' . $variables['node']->type;
-  if (function_exists($function)) {
-    $function($variables, $hook);
-  }
-}
-// */
-
-/**
- * Override or insert variables into the comment templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("comment" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_comment(&$variables, $hook) {
-  $variables['sample_variable'] = t('Lorem ipsum.');
-}
-// */
-
-/**
- * Override or insert variables into the region templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("region" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_region(&$variables, $hook) {
-  // Don't use Zen's region--sidebar.tpl.php template for sidebars.
-  //if (strpos($variables['region'], 'sidebar_') === 0) {
-  //  $variables['theme_hook_suggestions'] = array_diff($variables['theme_hook_suggestions'], array('region__sidebar'));
-  //}
-}
-// */
-
-/**
- * Override or insert variables into the block templates.
- *
- * @param $variables
- *   An array of variables to pass to the theme template.
- * @param $hook
- *   The name of the template being rendered ("block" in this case.)
- */
-/* -- Delete this line if you want to use this function
-function umkc_theme_preprocess_block(&$variables, $hook) {
-  // Add a count to all the blocks in the region.
-  // $variables['classes_array'][] = 'count-' . $variables['block_id'];
-
-  // By default, Zen will use the block--no-wrapper.tpl.php for the main
-  // content. This optional bit of code undoes that:
-  //if ($variables['block_html_id'] == 'block-system-main') {
-  //  $variables['theme_hook_suggestions'] = array_diff($variables['theme_hook_suggestions'], array('block__no_wrapper'));
-  //}
-}
-// */
-
-// Simple Search Advanced Link //
-
 function umkc_theme_form_islandora_solr_simple_search_form_alter(&$form, &$form_state, $form_id) {
   $link = array(
     '#markup' => l(t("Advanced Search"), "islandora-search", array('attributes' => array('class' => array('adv_search')))),
@@ -149,6 +26,132 @@ function umkc_theme_islandora_solr_facet_wrapper($variables) {
   $output .= $variables['content'];
   $output .= '</div>';
   return $output;
+}
+
+/**
+ * Override global preprocess html
+ */
+function umkc_theme_preprocess_html(&$variables, $hook) {
+  if (request_path() == 'acknowledgments') {
+    $keywords = array(
+      '#tag' => 'meta',
+      '#attributes' => array(
+        'name' => 'keywords',
+        'content' => 'National Endowment for the Humanities, NEH',
+      ),
+    );
+
+    drupal_add_html_head($keywords, 'keywords');
+  }
+}
+
+/**
+ * Override global page preprocess function
+ */
+function umkc_theme_preprocess_page(&$variables) {
+
+// Only if an islandora object
+  if ($islandora_object = menu_get_object('islandora_object', 2)) {
+
+    $temp_array = array(); 
+    $pid = $islandora_object->id;
+    $object_url = '/islandora/object/' . $pid;
+    $thumbnail_img = '<img src="' . $GLOBALS['base_url'] . $object_url . '/datastream/TN/view"' . '/>';
+    $object_model = 'islandora:collectionCModel';
+
+    $object_content_models = $islandora_object->relationships->get('info:fedora/fedora-system:def/model#', 'hasModel');
+
+    if (isset($islandora_object['PDF'])) {
+      $pdf_link = '<li id="pdf-btn"><a id="pdf-icon-link" target="_blank" href="' . $GLOBALS['base_url'] . $object_url. '/datastream/PDF/view"><img id="pdf-icon-image" src="/sites/all/themes/umkc-theme/images/icon_PDF.png"></a></li>';
+      $variables['pdf_datastream'] = $pdf_link;
+    }
+
+		foreach ($object_content_models as $model) {
+			$variables['theme_hook_suggestions'][] = 'page__islandora__object__' . str_replace(':', '_', $model['object']['value']);
+		}
+
+    foreach ($object_content_models as $k => $v) {
+      if ($object_content_models[$k]['object']['value'] == 'islandora:bookCModel') {
+        foreach ($variables['tabs']['#primary'] as $k2 => $v2) {
+          if ($variables['tabs']['#primary'][$k2]['#link']['title'] == 'Print Object') {
+            unset($variables['tabs']['#primary'][$k2]);
+          }
+        }
+      }
+    }
+
+// Only if a collection model
+    if ($object_content_models['0']['object']['value'] == $object_model) {
+
+      $metadata = $islandora_object['DC']->content;
+			$tabs = $variables['tabs'];
+      preg_match("/<dc:description>([^<>]*)<\/dc:description>/", $metadata, $description);
+
+      $temp_array['pid'] = $pid;
+      $temp_array['description'] = $description;
+      $temp_array['path'] = $object_url;
+      $temp_array['thumbnail'] = $thumbnail_img;
+      $temp_array['thumb_link'] = l($thumbnail_img, $object_url);
+
+      foreach ($tabs['#primary'] as $key => $value) {
+        if ($tabs['#primary'][$key]['#link']['title'] == 'View' || $tabs['#primary'][$key]['#link']['title'] == 'Print Object') {
+          unset($tabs['#primary'][$key]);
+        }
+      }
+
+      $variables['islandora_object'] = $temp_array;
+      $variables['tabs'] = $tabs;
+
+//      dsm($islandora_object, 'islandora object');
+//      dsm($metadata, 'metadata object');
+//      dsm($temp_array, 'custom array');
+//      dsm($variables, 'variables array');
+//      dsm($tabs, 'tabs array');
+    }
+  }
+}
+
+/**
+ * Override Islandora Solr Metadata Display preprocess function
+ */
+function umkc_theme_preprocess_islandora_solr_metadata_display(array &$variables) {
+  module_load_include('inc', 'islandora_solr_metadata', 'includes/db');
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  drupal_add_js('misc/form.js');
+  drupal_add_js('misc/collapse.js');
+
+  $object = $variables['islandora_object'];
+  $object_content_models = $object->relationships->get('info:fedora/fedora-system:def/model#', 'hasModel');
+  $object_model = 'islandora:collectionCModel';
+
+  $db_fields = array();
+  $solr_fields =& $variables['solr_fields'];
+  $associations = $variables['associations'];
+
+  if ($object_content_models['0']['object']['value'] != $object_model) {
+    $variables['model'] = $object_content_models['0']['object']['value'];
+
+    foreach ($object_content_models as $model) {
+      $variables['theme_hook_suggestions'][] = 'islandora_solr_metadata_display_' . str_replace(':', '_', $model['object']['value']);
+    }
+  
+    foreach ($associations as $configuration_id) {
+      $field = islandora_solr_metadata_get_fields($configuration_id['configuration_id']);
+      $db_fields = array_merge($db_fields, $field);
+    }
+    foreach ($db_fields as $solr_field => $value) {
+      if (isset($solr_fields[$solr_field])) {
+        continue;
+      }
+      // Make an array for use later on.
+      $solr_fields[$solr_field] = $value + array(
+        'value' => array(),
+      );
+    }
+    $variables['parent_collections'] = islandora_get_parents_from_rels_ext($object);
+	} else {
+		$variables['model'] = $object_model;
+	}
 }
 
 /**
